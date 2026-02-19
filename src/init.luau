@@ -315,7 +315,7 @@ function Tram:DisconnectAll(): ()
 	PublishUpdate(self)
 end
 
--- Will destroy only the local instance and unbind all functions associated with it
+-- Destroys the tram passed in self
 function Tram:DestroyLocal(): nil
 	self = GetUpdate(self)
 	if self == nil then
@@ -337,6 +337,7 @@ function Tram:DestroyLocal(): nil
 	return nil
 end
 
+-- Disables all trams with the same TraversableID
 function Tram:DestroyGlobal(): nil
 	self = GetUpdate(self)
 	if self == nil then
@@ -397,6 +398,16 @@ function TramService.NewTram<P...>(
 	return setmetatable(self, Tram) :: any
 end
 
+-- Checks if a tram is already cached and retrives a copy of the current data
+function TramService:GetCachedTram(TranversableID:string) : Tram<any>?
+	local CachedTram:Tram<any> = TramCache[TranversableID]
+	if CachedTram and not CachedTram.Destroyed then
+		return GetUpdate(CachedTram)
+	end
+	return nil
+end
+
+-- Debug will be removed
 function TramService.PrintCache()
 	return TramCache
 end
