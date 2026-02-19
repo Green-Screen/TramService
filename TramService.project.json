@@ -1,0 +1,20 @@
+{
+  "name": "TramService",
+  "emitLegacyScripts": false,
+  
+  
+  "tree": {
+    "$ignoreUnknownInstances": true,
+    "$className": "DataModel",
+
+    "ReplicatedStorage": {
+      "TramServiceV2": {
+        "$className": "Folder",
+        
+          "TramService": {
+          "$path": "src"
+        }
+      }
+    }
+  }
+}

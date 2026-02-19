@@ -1,0 +1,11 @@
+{
+   "luau-lsp.plugin.enabled": true,
+  "luau-lsp.sourcemap.rojoProjectFile": "TramService.project.json",
+    
+  "editor.defaultFormatter": "JohnnyMorganz.stylua",
+  
+  "[lua]": {
+    "editor.defaultFormatter": "JohnnyMorganz.stylua"
+  }
+
+}
