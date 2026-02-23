@@ -399,8 +399,8 @@ function TramService.NewTram<P...>(
 end
 
 -- Checks if a tram is already cached and retrives a copy of the current data
-function TramService:GetCachedTram(TranversableID:string) : Tram<any>?
-	local CachedTram:Tram<any> = TramCache[TranversableID]
+function TramService:GetCachedTram(TranversableID: string): Tram<any>?
+	local CachedTram: Tram<any> = TramCache[TranversableID]
 	if CachedTram and not CachedTram.Destroyed then
 		return GetUpdate(CachedTram)
 	end
