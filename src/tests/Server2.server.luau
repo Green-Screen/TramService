@@ -149,6 +149,7 @@ print(TramService.PrintCache())
 print("-----------------------------------------------------")
 task.wait(1)
 
+-- Local id test
 local NoIDTest1 = TramService.NewTram()
 local NoIDTest2 = TramService.NewTram()
 
