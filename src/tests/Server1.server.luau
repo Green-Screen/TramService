@@ -91,7 +91,7 @@ print(Multi1, Multi2, Multi3)
 
 TramService.NewTram("Wait"):Wait()
 
-local Test1 = TramService.NewTram("Test")
+local Test1 : TramService.Tram<string, boolean> = TramService.NewTram("Test") 
 local Test2 = TramService.NewTram("Test")
 local Test3 = TramService.NewTram("Test")
 
@@ -115,3 +115,14 @@ print(Test3:DestroyGlobal())
 print(Test2.Destroyed, TramService.PrintCache())
 --Test3:Fire()
 --Test2:Fire()
+
+
+Test2:Connect(function(...): ...any? 
+	Test2.BindID = "fjiodhsog" -- type error of read only
+	return
+end)
+
+-- new function type annotations
+Test1:Connect(function(a0: string, a1: boolean): ...any? 
+	
+end)

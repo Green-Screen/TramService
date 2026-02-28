@@ -14,28 +14,46 @@ local SmartTable = require("@self/Dependencies/SmartTable")
 -- Main type
 
 export type Tram<P...> = {
-	FunctionsBinded: { [string]: any },
-	YeildingThreads: { [string]: thread },
-	TraversableID: string,
-	Callback: boolean?,
-	Timeout: number,
-	BindID: string,
-	IsModuleEvent: boolean?,
-	Destroyed: boolean,
+	read FunctionsBinded: { [string]: any },
+	read YeildingThreads: { [string]: thread },
+	read TraversableID: string | "NonTranversable",
+	read Callback: boolean?,
+	read Timeout: number,
+	read BindID: string,
+	read IsModuleEvent: boolean?,
+	read Destroyed: boolean,
 
-	Connect: (self: Tram<P...>, (P...) -> ()) -> (),
-	Fire: (self: Tram<P...>, P...) -> (),
-	Wait: (self: Tram<P...>) -> P...,
-	Disconnect: (self: Tram<P...>) -> (),
-	DisconnectAll: (self: Tram<P...>) -> (),
+	read Connect: (self: Tram<P...>, (P...) -> ...any?) -> (),
+	read Fire: (self: Tram<P...>, P...) -> (),
+	read Wait: (self: Tram<P...>) -> P...,
+	read Disconnect: (self: Tram<P...>) -> (),
+	read DisconnectAll: (self: Tram<P...>) -> (),
 
-	DestroyLocal: (self: Tram<P...>) -> nil,
-	DestroyGlobal: (self: Tram<P...>) -> nil,
+	read DestroyLocal: (self: Tram<P...>) -> nil,
+	read DestroyGlobal: (self: Tram<P...>) -> nil,
 }
 
 type InternalTram<P...> = {
-	__index: InternalTram<P...>,
-	ClassName: string,
+	read __index: InternalTram<P...>,
+	read ClassName: string,
+
+	write FunctionsBinded: { [string]: any },
+	write YeildingThreads: { [string]: thread },
+	write TraversableID: string | "NonTranversable",
+	write Callback: boolean?,
+	write Timeout: number,
+	write BindID: string,
+	write IsModuleEvent: boolean?,
+	write Destroyed: boolean,
+
+	write Fire: (self: Tram<P...>, P...) -> (),
+	write Wait: (self: Tram<P...>) -> P...,
+	write Disconnect: (self: Tram<P...>) -> (),
+	write Connect: (self: Tram<P...>, (P...) -> ...any?) -> (),
+	write DisconnectAll: (self: Tram<P...>) -> (),
+
+	write DestroyLocal: (self: Tram<P...>) -> nil,
+	write DestroyGlobal: (self: Tram<P...>) -> nil,
 } & Tram<any>
 
 -- 					[[Specialized tram types]]
@@ -49,25 +67,25 @@ type InternalTram<P...> = {
 
 export type TramConnectOnly<P...> = {
 
-	Connect: (self: TramConnectOnly<P...>, (P...) -> ()) -> (),
-	Wait: (self: TramConnectOnly<P...>) -> P...,
+	read Connect: (self: Tram<P...>, (P...) -> ...any?) -> (),
+	read Wait: (self: TramConnectOnly<P...>) -> P...,
 }
 
 export type TramDisconnectOnly<P...> = {
 
-	Disconnect: (self: TramDisconnectOnly<P...>) -> (),
+	read Disconnect: (self: TramDisconnectOnly<P...>) -> (),
 }
 
 export type ModuleEvent<P...> = {
 
-	Connect: (self: ModuleEvent<P...>, (P...) -> ()) -> (),
-	Wait: (self: ModuleEvent<P...>) -> P...,
-	Disconnect: (self: ModuleEvent<P...>) -> (),
+	read Connect: (self: Tram<P...>, (P...) -> ...any?) -> (),
+	read Wait: (self: ModuleEvent<P...>) -> P...,
+	read Disconnect: (self: ModuleEvent<P...>) -> (),
 }
 
 export type OnlySignaling<P...> = {
 
-	Fire: (self: OnlySignaling<P...>, P...) -> (),
+	read Fire: (self: OnlySignaling<P...>, P...) -> (),
 }
 
 ----------------------------------------------------------------------------------------------
@@ -146,21 +164,21 @@ end
 ----------------------------------------------------------------------------------------------
 --					 		[[ Cache manager ]
 
-local TramCache: { [string?]: Tram<any> } = {}
+local TramCache: { [string?]: InternalTram<any> } = {}
 
-local function PublishUpdate(Tram: Tram<any>)
+local function PublishUpdate(Tram: InternalTram<any>)
 	if Tram.TraversableID ~= "NonTraversable" then
 		TramCache[Tram.TraversableID] = table.clone(Tram)
 	end
 end
 
-local function GetUpdate(Tram: Tram<any>)
+local function GetUpdate(Tram: InternalTram<any>)
 	if Tram.TraversableID == "NonTraversable" then
 		return Tram
 	end
 	local Cache = TramCache[Tram.TraversableID]
 	if not Cache then
-		return Tram
+		return Tram :: any
 	end
 	if Tram.Destroyed or Cache.Destroyed then
 		warn(
@@ -179,7 +197,7 @@ local function GetUpdate(Tram: Tram<any>)
 	Tram.YeildingThreads = Cache.YeildingThreads
 	Tram.Callback = Cache.Callback
 
-	return Tram
+	return Tram :: any
 end
 
 ----------------------------------------------------------------------------------------------
@@ -233,7 +251,7 @@ function Tram:Fire(...): ()
 				string.format("%s Attempt to fire [%s], No function binded", SERVICE_NAME, tostring(self.TraversableID))
 			)
 		end
-		return Timeout(self.Timeout, self.FunctionsBinded :: any, ...)
+		return Timeout(self.Timeout, self.FunctionsBinded :: any, ...) :: any
 	else
 		for ID, Thread in self.YeildingThreads do
 			self.YeildingThreads[ID] = nil
@@ -319,7 +337,7 @@ end
 function Tram:DestroyLocal(): nil
 	self = GetUpdate(self)
 	if self == nil then
-		return
+		return nil
 	end
 
 	assert(
@@ -341,7 +359,7 @@ end
 function Tram:DestroyGlobal(): nil
 	self = GetUpdate(self)
 	if self == nil then
-		return
+		return nil
 	end
 
 	if self.TraversableID == "NonTraversable" then
@@ -400,7 +418,7 @@ end
 
 -- Checks if a tram is already cached and retrives a copy of the current data
 function TramService:GetCachedTram(TranversableID: string): Tram<any>?
-	local CachedTram: Tram<any> = TramCache[TranversableID]
+	local CachedTram: InternalTram<any> = TramCache[TranversableID]
 	if CachedTram and not CachedTram.Destroyed then
 		return GetUpdate(CachedTram)
 	end
