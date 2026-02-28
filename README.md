@@ -1,5 +1,9 @@
 # Tram Service
 
+## Current Version: V 2.1
+Added type safety for luau type solver
+
+
 Tram Service is a replacement to Bindable events
 Tram Service offers many performance improvments and features such as:
 
