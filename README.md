@@ -1,6 +1,6 @@
 # Tram Service
 
-## Current Version: V 2.1
+## Current Version: V 2.2
 Added type safety for luau type solver
 
 
