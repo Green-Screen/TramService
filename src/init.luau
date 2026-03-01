@@ -67,40 +67,40 @@ type InternalTram<P...> = {
 
 export type TramConnectOnly<P...> = {
 
-	read Connect: (self: Tram<P...>, (P...) -> ...any?) -> (),
+	read Connect: (self: TramConnectOnly<P...>, (P...) -> ...any?) -> (),
 	read Wait: (self: TramConnectOnly<P...>) -> P...,
 
-	read DestroyLocal: (self: Tram<P...>) -> nil,
-	read DestroyGlobal: (self: Tram<P...>) -> nil,
+	read DestroyLocal: (self: TramConnectOnly<P...>) -> nil,
+	read DestroyGlobal: (self: TramConnectOnly<P...>) -> nil,
 }
 
 export type TramDisconnectOnly<P...> = {
 
-	read Disconnect: (self: Tram<P...>) -> (),
-	read DisconnectAll: (self: Tram<P...>) -> (),
+	read Disconnect: (self: TramDisconnectOnly<P...>) -> (),
+	read DisconnectAll: (self: TramDisconnectOnly<P...>) -> (),
 
-	read DestroyLocal: (self: Tram<P...>) -> nil,
-	read DestroyGlobal: (self: Tram<P...>) -> nil,
+	read DestroyLocal: (self: TramDisconnectOnly<P...>) -> nil,
+	read DestroyGlobal: (self: TramDisconnectOnly<P...>) -> nil,
 }
 
 export type ModuleEvent<P...> = {
 
-	read Connect: (self: Tram<P...>, (P...) -> ...any?) -> (),
+	read Connect: (self: ModuleEvent<P...>, (P...) -> ...any?) -> (),
 	read Wait: (self: ModuleEvent<P...>) -> P...,
 
-	read Disconnect: (self: Tram<P...>) -> (),
-	read DisconnectAll: (self: Tram<P...>) -> (),
+	read Disconnect: (self: ModuleEvent<P...>) -> (),
+	read DisconnectAll: (self: ModuleEvent<P...>) -> (),
 
-	read DestroyLocal: (self: Tram<P...>) -> nil,
-	read DestroyGlobal: (self: Tram<P...>) -> nil,
+	read DestroyLocal: (self: ModuleEvent<P...>) -> nil,
+	read DestroyGlobal: (self: ModuleEvent<P...>) -> nil,
 }
 
 export type OnlySignaling<P...> = {
 
 	read Fire: (self: OnlySignaling<P...>, P...) -> (),
 
-	read DestroyLocal: (self: Tram<P...>) -> nil,
-	read DestroyGlobal: (self: Tram<P...>) -> nil,
+	read DestroyLocal: (self: OnlySignaling<P...>) -> nil,
+	read DestroyGlobal: (self: OnlySignaling<P...>) -> nil,
 }
 
 ----------------------------------------------------------------------------------------------
