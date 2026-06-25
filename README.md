@@ -17,7 +17,6 @@ Tram service is a **All In One** signaling class. **_Whats special?_** Tram Serv
 
 ### **Projects In Use:**
 -   [TerminalService [In Dev]]()
--   [TramService](https://github.com/Green-Screen/TramService)
 
 ### **Features:**
 
