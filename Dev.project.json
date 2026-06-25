@@ -1,0 +1,25 @@
+{
+  "name": "TramService: Dev",
+  "emitLegacyScripts": false,
+  
+  
+  "tree": {
+    "$ignoreUnknownInstances": true,
+    "$className": "DataModel",
+
+    "ReplicatedFirst": {
+      "TramService": {
+        "$className": "Folder",
+        "$path": "Packages",
+        
+        "TramService": {
+          "$path": "src",
+          
+          "Tests":{
+            "$path": "tests"
+          }
+        }
+      }
+    }
+  }
+}

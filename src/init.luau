@@ -1,60 +1,86 @@
--- Tram service V 2.2
+-- TramService V 3.0.0
 -- @Patriots8800
+-- Documentation https://example.com
 
 --!strict
-
 ----------------------------------------------------------------------------------------------
+
 -- 							[[ Dependencies ]]
 
-local SmartTable = require("@self/Dependencies/SmartTable")
+local Log = require("./Log")
+local SecureClasses = require("./SecureClasses")
+local SmartTable = require("./SmartTable")
 
 ----------------------------------------------------------------------------------------------
--- 							[[ Types ]]
 
+-- 							[[ Types ]]
 -- Main type
 
-export type Tram<P...> = {
-	read FunctionsBinded: { [string]: any },
-	read YeildingThreads: { [string]: thread },
-	read TraversableID: string | "NonTranversable",
-	read Callback: boolean?,
-	read Timeout: number,
-	read BindID: string,
-	read IsModuleEvent: boolean?,
-	read Destroyed: boolean,
+export type Tram<P...> = SecureClasses.WrappedMetatable<{
+	ClassName: string,
 
-	read Connect: (self: Tram<P...>, (P...) -> ...any?) -> (),
-	read Fire: (self: Tram<P...>, P...) -> (),
-	read Wait: (self: Tram<P...>) -> P...,
-	read Disconnect: (self: Tram<P...>) -> (),
-	read DisconnectAll: (self: Tram<P...>) -> (),
+	TraversableID: string | "NonTranversable",
+	BindID: string,
 
-	read DestroyLocal: (self: Tram<P...>) -> nil,
-	read DestroyGlobal: (self: Tram<P...>) -> nil,
+	LocallyConnected: boolean,
+	LocallyYielding: boolean,
+
+	Connect: (self: Tram<P...>, (P...) -> ...any?) -> (),
+	Fire: (self: Tram<P...>, P...) -> (),
+	Wait: (self: Tram<P...>) -> P...,
+	DisconnectLocal: (self: Tram<P...>) -> (),
+	DisconnectAll: (self: Tram<P...>) -> (),
+
+	HasAGlobalConnectedUnit: (self: Tram<P...>) -> boolean,
+	HasAGlobalYieldingUnit: (self: Tram<P...>) -> boolean,
+}>
+
+type ITram<P...> = SecureClasses.WrappedMetatable<{
+	__index: ITram<P...>,
+	__destroy: () -> (),
+	__typeKey: string,
+	ClassName: string,
+
+	TraversableID: string | "NonTranversable",
+	BindID: string, -- local
+
+	Callback: boolean,
+
+	LocallyConnected: boolean,
+	LocallyYielding: boolean,
+
+	_FunctionsBinded: ({ [string]: GenericFunction<P...> } | GenericFunction<P...>)?,
+	_YeildingThreads: { [string]: thread },
+	_Timeout: number,
+	_IsModuleEvent: boolean,
+
+	Fire: (self: ITram<P...>, P...) -> (),
+	Wait: (self: ITram<P...>) -> P...,
+	DisconnectLocal: (self: ITram<P...>) -> (),
+	Connect: (self: ITram<P...>, (P...) -> ...any?) -> (),
+	DisconnectAll: (self: ITram<P...>) -> (),
+
+	HasAGlobalConnectedUnit: (self: ITram<P...>) -> boolean,
+	HasAGlobalYieldingUnit: (self: ITram<P...>) -> boolean,
+}>
+
+type GenericFunction<P..., R...> = (P...) -> R...
+
+type Settings = {
+	["Callback"]: boolean?,
+	["_Timeout"]: number,
+	["_IsModuleEvent"]: boolean?,
 }
 
-type InternalTram<P...> = {
-	read __index: InternalTram<P...>,
-	read ClassName: string,
+type TramCache<I> = {
+	[I]: {
+		FunctionsBinded: { [I]: GenericFunction<...any, ...any> },
+		YieldingThreads: { [I]: thread },
+		Trams: { [I]: ITram<> },
 
-	write FunctionsBinded: { [string]: any },
-	write YeildingThreads: { [string]: thread },
-	write TraversableID: string | "NonTranversable",
-	write Callback: boolean?,
-	write Timeout: number,
-	write BindID: string,
-	write IsModuleEvent: boolean?,
-	write Destroyed: boolean,
-
-	write Fire: (self: Tram<P...>, P...) -> (),
-	write Wait: (self: Tram<P...>) -> P...,
-	write Disconnect: (self: Tram<P...>) -> (),
-	write Connect: (self: Tram<P...>, (P...) -> ...any?) -> (),
-	write DisconnectAll: (self: Tram<P...>) -> (),
-
-	write DestroyLocal: (self: Tram<P...>) -> nil,
-	write DestroyGlobal: (self: Tram<P...>) -> nil,
-} & Tram<any>
+		Settings: Settings,
+	},
+}
 
 -- 					[[Specialized tram types]]
 
@@ -67,58 +93,65 @@ type InternalTram<P...> = {
 
 export type TramConnectOnly<P...> = {
 
-	read Connect: (self: TramConnectOnly<P...>, (P...) -> ...any?) -> (),
-	read Wait: (self: TramConnectOnly<P...>) -> P...,
+	Connect: (self: TramConnectOnly<P...>, (P...) -> ...any?) -> (),
+	Wait: (self: TramConnectOnly<P...>) -> P...,
 
-	read DestroyLocal: (self: TramConnectOnly<P...>) -> nil,
-	read DestroyGlobal: (self: TramConnectOnly<P...>) -> nil,
+	DestroyLocal: (self: TramConnectOnly<P...>) -> nil,
+	DestroyGlobal: (self: TramConnectOnly<P...>) -> nil,
 }
 
 export type TramDisconnectOnly<P...> = {
 
-	read Disconnect: (self: TramDisconnectOnly<P...>) -> (),
-	read DisconnectAll: (self: TramDisconnectOnly<P...>) -> (),
+	Disconnect: (self: TramDisconnectOnly<P...>) -> (),
+	DisconnectAll: (self: TramDisconnectOnly<P...>) -> (),
 
-	read DestroyLocal: (self: TramDisconnectOnly<P...>) -> nil,
-	read DestroyGlobal: (self: TramDisconnectOnly<P...>) -> nil,
+	DestroyLocal: (self: TramDisconnectOnly<P...>) -> nil,
+	DestroyGlobal: (self: TramDisconnectOnly<P...>) -> nil,
 }
 
 export type ModuleEvent<P...> = {
 
-	read Connect: (self: ModuleEvent<P...>, (P...) -> ...any?) -> (),
-	read Wait: (self: ModuleEvent<P...>) -> P...,
+	Connect: (self: ModuleEvent<P...>, (P...) -> ...any?) -> (),
+	Wait: (self: ModuleEvent<P...>) -> P...,
 
-	read Disconnect: (self: ModuleEvent<P...>) -> (),
-	read DisconnectAll: (self: ModuleEvent<P...>) -> (),
+	Disconnect: (self: ModuleEvent<P...>) -> (),
+	DisconnectAll: (self: ModuleEvent<P...>) -> (),
 
-	read DestroyLocal: (self: ModuleEvent<P...>) -> nil,
-	read DestroyGlobal: (self: ModuleEvent<P...>) -> nil,
+	DestroyLocal: (self: ModuleEvent<P...>) -> nil,
+	DestroyGlobal: (self: ModuleEvent<P...>) -> nil,
 }
 
 export type OnlySignaling<P...> = {
 
-	read Fire: (self: OnlySignaling<P...>, P...) -> (),
+	Fire: (self: OnlySignaling<P...>, P...) -> (),
 
-	read DestroyLocal: (self: OnlySignaling<P...>) -> nil,
-	read DestroyGlobal: (self: OnlySignaling<P...>) -> nil,
+	DestroyLocal: (self: OnlySignaling<P...>) -> nil,
+	DestroyGlobal: (self: OnlySignaling<P...>) -> nil,
 }
 
 ----------------------------------------------------------------------------------------------
 
--- 							[[ Service ]]
+-- 							[[ Service Header ]]
 
-local SERVICE_NAME = "[TramService]:"
+local SERVICE_NAME = "TramService"
 
 ----------------------------------------------------------------------------------------------
 
 -- 							[[ Private functions (helpers) ]]
+
+local indexKey = game:GetService("HttpService"):GenerateGUID()
+local Display = Log.Display
+local LevelAssert = Log.Assert
+local TypeCheck = Log.TypeCheck
+
+local NonTraversableTag, CallbackTag = "NonTraversable", "Callback"
 
 -- 							[[ Thread caching ]]
 
 local ThreadCache: { thread } = {}
 
 -- Runs the yielded function then resets it
-local function Run(FN, Thread, ...)
+local function Run<T..., V...>(FN: (T...) -> V..., Thread: thread, ...: T...)
 	FN(...)
 
 	table.insert(ThreadCache, Thread)
@@ -135,7 +168,7 @@ local function PrimeThread(): thread
 end
 
 -- Runs the function pased on the cashed thread
-local function RunCachedThread(FN: () -> (), ...)
+local function RunCachedThread<T..., V...>(FN: (T...) -> V..., ...: T...)
 	local Thread: thread
 
 	if ThreadCache[1] then
@@ -146,24 +179,25 @@ local function RunCachedThread(FN: () -> (), ...)
 	end
 
 	if coroutine.status(Thread) ~= "suspended" then
-		warn(string.format("%s, Junk thread found removing from cache", SERVICE_NAME))
+		Display("Emphasize", {}, "Junk thread found removing from cache", SERVICE_NAME)
 		return RunCachedThread(FN)
 	end
 
 	task.spawn(Thread, FN, Thread, ...)
 end
 
--- Adds a timeout to remote function
-local function Timeout(Time: number, FN, ...): (boolean, ...any)
+type S = any
+
+-- Adds a timeout to callback functions
+local function Timeout<T..., V...>(Time: number, FN: (T...) -> V..., ...: T...): (boolean, V...)
 	local Returned, Return, RunThread
 	local Start = os.clock()
 
-	Time = math.clamp(Time, 0, 20)
+	Time = math.clamp(Time, 1, 20)
 	RunThread = task.spawn(function(...)
-		Return = FN(...)
+		Return = { FN(...) }
 		Returned = true
 	end, ...)
-
 	repeat
 		task.wait()
 	until Returned or os.clock() - Start > Time
@@ -171,230 +205,229 @@ local function Timeout(Time: number, FN, ...): (boolean, ...any)
 	task.cancel(RunThread)
 
 	if not Returned then
-		warn("Function callback time exhausted limit of " .. Time .. " seconds.")
+		Display("Emphasize", { Time = Time }, "Function callback exhausted limit of {Time} seconds", SERVICE_NAME)
 	end
-	return not Returned, Return
+	return not Returned, table.unpack((Return or {}) :: { any })
 end
 
-----------------------------------------------------------------------------------------------
---					 		[[ Cache manager ]
+local TramCache: TramCache<string> = {}
 
-local TramCache: { [string?]: InternalTram<any> } = {}
-
-local function PublishUpdate(Tram: InternalTram<any>)
-	if Tram.TraversableID ~= "NonTraversable" then
-		TramCache[Tram.TraversableID] = table.clone(Tram)
-	end
-end
-
-local function GetUpdate(Tram: InternalTram<any>)
-	if Tram.TraversableID == "NonTraversable" then
+local function CacheCreator(ID: string, Settings: Settings)
+	local Tram = TramCache[ID]
+	if Tram then
 		return Tram
 	end
-	local Cache = TramCache[Tram.TraversableID]
-	if not Cache then
-		return Tram :: any
-	end
-	if Tram.Destroyed or Cache.Destroyed then
-		warn(
-			string.format(
-				"%s Attempt to interact with %s Bind ID: %s\nThis object has been destroyed and locked",
-				SERVICE_NAME,
-				(Tram.TraversableID or Cache.TraversableID or "NO TRACEBACK"),
-				(Tram.BindID or Cache.BindID or "NO TRACEBACK")
-			)
-		)
-		return nil :: never
-	end
+	local self = {}
 
-	Tram.Timeout = Cache.Timeout
-	Tram.FunctionsBinded = Cache.FunctionsBinded
-	Tram.YeildingThreads = Cache.YeildingThreads
-	Tram.Callback = Cache.Callback
+	self.FunctionsBinded = {}
+	self.YieldingThreads = {}
+	self.Trams = {}
 
-	return Tram :: any
+	self.Settings = Settings
+
+	TramCache[ID] = self
+	return self
 end
 
 ----------------------------------------------------------------------------------------------
 --					 		[[ MetaData (MetaTable) ]]
 
 local Tram = {}
+Tram.__typeKey = indexKey
+Tram.__destroy = function(self: ITram<>, Global: boolean?)
+	local function DestroyYieldAndConnection()
+		if self.LocallyConnected then
+			self:DisconnectLocal()
+		end
+		if self.LocallyYielding then
+			Display(
+				"Emphasize",
+				{ ID = self.BindID },
+				"Destroying Tram: {ID} with yielded threads, this may result in a memory leak",
+				SERVICE_NAME
+			)
+		end
+	end
+
+	if self.TraversableID ~= NonTraversableTag then
+		local Cache = TramCache[self.TraversableID]
+
+		if Global then
+			local ID = self.TraversableID
+
+			for _, T in Cache.Trams do
+				T:Destroy(false) -- Destroys ALL objects
+			end
+
+			TramCache[ID] = nil
+		else
+			DestroyYieldAndConnection()
+
+			if self.LocallyYielding then
+				Cache.YieldingThreads[self.BindID] = nil -- clearing Yielding threads !!!!!!
+			end
+
+			Cache.Trams[self.BindID] = nil
+			--Cache = nil
+		end
+	else
+		DestroyYieldAndConnection()
+	end
+	self._FunctionsBinded = nil
+	self._YeildingThreads = nil :: never
+end
 
 Tram.ClassName = "Tram"
-Tram.__index = Tram
 
 -- Connect a function to the tram
-function Tram:Connect(fn): ()
-	assert(type(fn) == "function", string.format("%s Attempt to index %s with function", SERVICE_NAME, typeof(fn)))
+function Tram:Connect<P...>(fn: GenericFunction<P...>): ()
+	TypeCheck(fn, 1, false, 3, false, "function")
 
-	self = GetUpdate(self)
-	if self == nil then
-		return
-	end
+	local FunctionsBinded = ((self :: any)[indexKey] :: ITram<any>)._FunctionsBinded;
+
+	((self :: any)[indexKey] :: ITram<any>).LocallyConnected = true
 
 	if self.Callback then
-		self.FunctionsBinded = fn
+		(FunctionsBinded :: { [string]: GenericFunction<P...> })[CallbackTag] = fn
 	else
-		self.FunctionsBinded[self.BindID] = fn
+		(FunctionsBinded :: { [string]: GenericFunction<P...> })[self.BindID] = fn
 	end
-
-	PublishUpdate(self)
 end
 
 -- Handles the data sent in a optimized threaded capacity
-function Tram:Fire(...): ()
-	self = GetUpdate(self)
-	if self == nil then
-		return
-	end
-	--[[if not TraversableEvent then
-		return error(
-			string.format(
-				"%s Attempt to get traversable  station for [%s] ID has no reciprocal",
-				SERVICE_NAME,
-				tostring(self.TraversableID)
-			),
-			100
-		)
-	end]]
+function Tram:Fire<P...>(...: P...): any
+	self = self :: ITram<P...>
+
+	local FunctionsBinded = ((self :: any)[indexKey] :: ITram<any>)._FunctionsBinded
+	local TOut = ((self :: any)[indexKey] :: ITram<any>)._Timeout
+	local IsModuleEvent = ((self :: any)[indexKey] :: ITram<any>)._IsModuleEvent
+	local YieldingThreads = ((self :: any)[indexKey] :: ITram<any>)._YeildingThreads
 
 	if self.Callback then
-		if not self.FunctionsBinded and not self.IsModuleEvent then
-			return warn(
-				string.format("%s Attempt to fire [%s], No function binded", SERVICE_NAME, tostring(self.TraversableID))
-			)
+		if not next(FunctionsBinded :: { [string]: GenericFunction<...any> }) then
+			if not IsModuleEvent then
+				return Display(
+					"Emphasize",
+					{ Name = self.TraversableID },
+					"Attempt to fire Event: {Name} with no function binded",
+					SERVICE_NAME
+				)
+			end
+			return
 		end
-		return Timeout(self.Timeout, self.FunctionsBinded :: any, ...) :: any
+
+		return Timeout(TOut, (FunctionsBinded :: any)[CallbackTag] :: GenericFunction<P...>, ...)
 	else
-		for ID, Thread in self.YeildingThreads do
-			self.YeildingThreads[ID] = nil
+		if not next(FunctionsBinded :: { GenericFunction<P...> }) and not next(YieldingThreads) then
+			if not IsModuleEvent then
+				return Display(
+					"Emphasize",
+					{ Name = self.TraversableID },
+					"Attempt to fire Event: {Name} with no function binded or threads yielding",
+					SERVICE_NAME
+				)
+			end
+			return
+		end
+
+		for ID, Thread in YieldingThreads do
+			YieldingThreads[ID] = nil
+			TramCache[self.TraversableID].Trams[ID][indexKey].LocallyYielding = false
 			task.spawn(Thread, ...)
 		end
+		-- ((self :: any)[indexKey] :: ITram<any>).LocallyYielding = false
 
-		if not next(self.FunctionsBinded) and not self.IsModuleEvent then
-			return warn(
-				string.format("%s Attempt to fire [%s], No function binded", SERVICE_NAME, tostring(self.TraversableID))
-			)
-		end
-
-		for _, Func in self.FunctionsBinded do
+		for _, Func in FunctionsBinded :: { [string]: GenericFunction<P...> } do
 			RunCachedThread(Func, ...)
 		end
-
-		PublishUpdate(self)
 	end
+
+	return
 end
 
 -- Yields the main thread until :Fire() is called and resumes it
-function Tram:Wait(): ()
-	self = GetUpdate(self)
-	if self == nil then
-		return
-	end
+function Tram:Wait<T...>(): T...
+	local YieldingThreads = ((self :: any)[indexKey] :: ITram<any>)._YeildingThreads
 
-	assert(
-		not self.Callback,
-		string.format("%s Attempt to yield callback function, cannot yield callbacks", SERVICE_NAME)
-	)
-	assert(
-		self.YeildingThreads[self.BindID] == nil,
-		string.format("%s Attempt to yield thread that is already yielding", SERVICE_NAME)
-	)
+	LevelAssert(not self.Callback, "Attempt to yield callback function, cannot yield callbacks", 3, SERVICE_NAME)
+	LevelAssert(not self.LocallyYielding, "Attempt to yield thread that is already yielding", 3, SERVICE_NAME);
 
-	self.YeildingThreads[self.BindID] = coroutine.running()
-	PublishUpdate(self)
+	((self :: any)[indexKey] :: ITram<any>).LocallyYielding = true
+
+	YieldingThreads[self.BindID] = coroutine.running()
 
 	return coroutine.yield()
 end
 
 -- Disconnects a function from the tram
-function Tram:Disconnect(): ()
-	self = GetUpdate(self)
-	if self == nil then
-		return
-	end
+function Tram:DisconnectLocal(): ()
+	local FunctionsBinded = ((self :: any)[indexKey] :: ITram<any>)._FunctionsBinded
 
-	if not self.IsModuleEvent then
-		assert(
-			not next(self.YeildingThreads),
-			string.format("%s Attempt to disconnect tram while a station is yielding", SERVICE_NAME)
+	if not self.LocallyConnected then
+		Display(
+			"Error",
+			{ ID = self.BindID },
+			"Attempt to disconnect Event: {ID}, No function binded",
+			SERVICE_NAME,
+			true,
+			4
 		)
 	end
 
 	if self.Callback then
-		self.FunctionsBinded = nil :: any
+		(FunctionsBinded :: any)[CallbackTag] = nil
 	else
-		self.FunctionsBinded[self.BindID] = nil
+		(FunctionsBinded :: { [string]: GenericFunction<...any, ...any> })[self.BindID] = nil
 	end
 
-	PublishUpdate(self)
+	if not next(FunctionsBinded :: { [string]: GenericFunction<...any, ...any> }) then
+		((self :: any)[indexKey] :: ITram<any>).LocallyConnected = false
+	end
 end
 
 -- Disconnects all function connected to the TraversableID
 function Tram:DisconnectAll(): ()
-	self = GetUpdate(self)
-	if self == nil then
-		return
+	self = self :: ITram<...any>
+
+	if not self:HasAGlobalConnectedUnit() then
+		Display(
+			"Error",
+			{ ID = self.BindID },
+			"Attempt to disconnect Event: {ID}, No function binded",
+			SERVICE_NAME,
+			true,
+			4
+		)
 	end
+
+	if self.Callback and self.TraversableID == NonTraversableTag then
+		self:DisconnectLocal()
+	else
+		for _, v in TramCache[(self :: Tram<...any>).TraversableID].Trams do
+			if v.LocallyConnected then
+				v:DisconnectLocal()
+			end
+		end
+		--table.clear(FunctionsBinded :: { [string]: GenericFunction<...any, ...any> })
+	end
+end
+
+function Tram:HasAGlobalConnectedUnit(): boolean
+	local FunctionsBinded = ((self :: any)[indexKey] :: ITram<any>)._FunctionsBinded
 
 	if self.Callback then
-		self.FunctionsBinded = nil :: any
+		return (FunctionsBinded :: any)[CallbackTag] ~= nil
 	else
-		table.clear(self.FunctionsBinded)
+		return next(TramCache[(self :: ITram<...any>).TraversableID].FunctionsBinded) ~= nil
 	end
-
-	PublishUpdate(self)
 end
 
--- Destroys the tram passed in self
-function Tram:DestroyLocal(): nil
-	self = GetUpdate(self)
-	if self == nil then
-		return nil
+function Tram:HasAGlobalYieldingUnit(): boolean
+	if self.Callback then
+		return false -- Callback functions cannot call :Wait nor yield longer then the time limit
+	else
+		return next(TramCache[(self :: ITram<...any>).TraversableID].YieldingThreads) ~= nil
 	end
-
-	assert(
-		not self.YeildingThreads[self.BindID],
-		string.format(
-			"%s Attempt to destroy %s with BindID: %s\nwhile tram is currently yielding",
-			SERVICE_NAME,
-			self.TraversableID,
-			self.BindID
-		)
-	)
-
-	self:Disconnect()
-	self.Destroyed = true
-	return nil
-end
-
--- Disables all trams with the same TraversableID
-function Tram:DestroyGlobal(): nil
-	self = GetUpdate(self)
-	if self == nil then
-		return nil
-	end
-
-	if self.TraversableID == "NonTraversable" then
-		return self:DestroyLocal()
-	end
-
-	for ID: string, thread: thread in self.YeildingThreads do
-		error(
-			string.format(
-				"%s Attempt to destroy %s with BindID: %s\nwhile tram is currently yielding",
-				SERVICE_NAME,
-				self.TraversableID,
-				self.BindID
-			),
-			100
-		)
-	end
-	self:DisconnectAll()
-
-	self.Destroyed = true
-	PublishUpdate(self)
-	return nil
 end
 
 ----------------------------------------------------------------------------------------------
@@ -402,82 +435,128 @@ end
 
 local TramService = {}
 
--- TraversableID needed to make the event accessable outside of the main script container
 function TramService.NewTram<P...>(
 	TraversableID: string?,
 	Function: boolean?, -- Params
 	Timeout: number?,
 	IsModuleEvent: boolean?
-): Tram<P...>
-	assert(
-		not TraversableID or type(TraversableID) == "string",
-		string.format("%s Attempt to index string or nil with %s", SERVICE_NAME, typeof(TraversableID))
-	)
+): Tram<...any>
+	TypeCheck(TraversableID, 1, true, 3, false, "string")
+	TypeCheck(Function, 2, true, 3, false, "boolean")
+	TypeCheck(Timeout, 3, true, 3, false, "number")
+	TypeCheck(IsModuleEvent, 4, true, 3, false, "boolean")
+
 	local self = {}
 
-	self.Callback = Function or false
-	self.IsModuleEvent = IsModuleEvent
-	self.TraversableID = TraversableID or "NonTraversable"
-	self.FunctionsBinded = if Function then nil else {}
-	self.Timeout = Timeout or 5
-	self.YeildingThreads = {}
-	self.BindID = SmartTable.Helper.GenerateUUID()
-	self.Destroyed = false
+	if TraversableID then
+		local CachedTram: any = TramCache[TraversableID]
+		if not CachedTram then
+			CachedTram = CacheCreator(TraversableID, {
+				["Callback"] = Function or false,
+				["_IsModuleEvent"] = IsModuleEvent or false,
+				["_Timeout"] = Timeout or 5,
+			})
+		end
 
-	return setmetatable(self, Tram) :: any
-end
+		self.TraversableID = TraversableID
 
--- Checks if a tram is already cached and retrives a copy of the current data
-function TramService:GetCachedTram(TranversableID: string): Tram<any>?
-	local CachedTram: InternalTram<any> = TramCache[TranversableID]
-	if CachedTram and not CachedTram.Destroyed then
-		return GetUpdate(CachedTram)
+		self.Callback = CachedTram.Settings.Callback
+		self._IsModuleEvent = CachedTram.Settings._IsModuleEvent
+		self._Timeout = CachedTram.Settings._Timeout
+		self._FunctionsBinded = CachedTram.FunctionsBinded
+		self._YeildingThreads = CachedTram.YieldingThreads
+	else
+		self.TraversableID = NonTraversableTag
+
+		self.Callback = Function or false
+		self._IsModuleEvent = IsModuleEvent or false
+		self._Timeout = Timeout or 5
+		self._FunctionsBinded = {}
+		self._YeildingThreads = {}
 	end
-	return nil
+
+	self.BindID = SmartTable.Helper.GenerateUUID()
+	self.LocallyConnected = false
+	self.LocallyYielding = false
+
+	local T = SecureClasses(self, Tram, Tram.ClassName) :: ITram<P...>
+
+	if self.TraversableID ~= NonTraversableTag then
+		TramCache[self.TraversableID].Trams[self.BindID] = T :: any
+	end
+
+	return T :: Tram<...any>
 end
 
 return TramService
-
 ----------------------------------------------------------------------------------------------
 
---[[
+-- Tags: https://eryn.io/moonwave/docs/TagList/
 
-																	How to use.
-	Tram service is a replacement for bindable events, they provide all the same functionallites + new performance upgrades
-	
-	To create a Tram require the module and call the "NewTram" function, If you want your Trams to be Tranversable between scripts
-	Be sure to add a TranversableID as it is required for these, if no id is provided the event will be locked to the script the module
-	was required in.
-	
-	Bindable Functions are supported with a built in timeout, A bindable event timeout will return a tupe (DidExpire:Boolean, Results:...Any?)
-	The boolean with determin if the timeout was exhausted,  true if yes and false if no, and the rest is the returned product.
-	Be Careful with calling wait in the same frame as this can cause it to be skipped and then miss being resumed making it forever yield
-	
-	
-														Ill make a documentation soon ;D
+--[=[ 
+    @class TEMPLATECLASS
+    A class template
+]=]
 
+--[=[
+    @within TEMPLATECLASS
+    @type TEMPLATETYPE Test
 
+    Template type
+]=]
 
-			-- NewTram: {
+--[=[
+    @within TEMPLATECLASS
+    @interface TEMPLATEINTERFACE
 
-				TraversableID : (string?) -> A id used to connect trams across scripts.
-											Default is "NonTraversable"
-											(Must be the same in order to communicate across scripts).
-											Left nill will lock the event to the scope and memory container of the script.
-											To share you must manually share the object. This is good for embeding into other modules also mixed with the specialized type annotations
-			
-				Function: (boolean?) -> Determins if the event should be treated as a bindable function
+    .T1 TEMPLATETYPE
+    .T2 TEMPLATETYPE
+    .T3 TEMPLATETYPE
 
-				Timeout: (number?) -> 	Sets the function timeout
-										Default is 5 seconds
-										Only applied if Function = True
-				
-				IsModuleEvent : (boolean?) -> Disables console logs (Asserts and errors will still be broadcasted)
-											This is used if you dont want to be spammed with warning logs if the
-											object is being used dynamically instead of statically always assigned.
-											This ["WILL"] make it harder to debug if something isn't working.
-			
-			
-				} -> Returns a tram object
+    Template type
+]=]
 
-]]
+--[=[
+    @within TEMPLATECLASS
+    @function TEMPLATEFUNCTION
+
+    @param T1 TEMPLATETYPE
+    @return TEMPLATEINTERFACE
+
+    Template type
+
+]=]
+
+--[=[
+    @within TEMPLATECLASS
+    @method TEMPLATEMETHOD
+
+    @param T1 TEMPLATETYPE
+    @return TEMPLATEINTERFACE
+
+    Template type
+
+    :::tip
+        Tip Container
+    :::
+    :::info
+        info Container
+    :::
+    :::caution
+        caution Container
+    :::
+    :::danger
+        danger Container
+    :::
+
+    | Head1 | Head2 | Head3 |
+    |-------|-------|-------|
+    | Prop1 | Prop2 | Prop3 |
+]=]
+
+--[=[
+    @within TEMPLATECLASS
+    
+    @prop TEMPLATEPROPERTY1 boolean
+
+]=]

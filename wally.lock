@@ -3,6 +3,26 @@
 registry = "test"
 
 [[package]]
-name = "cagur/categoryv2"
-version = "0.1.0"
+name = "green-screen/easytype"
+version = "2.0.7"
 dependencies = []
+
+[[package]]
+name = "green-screen/logger"
+version = "0.2.0"
+dependencies = []
+
+[[package]]
+name = "green-screen/secureclasses"
+version = "2.3.0"
+dependencies = [["EasyType", "green-screen/easytype@2.0.7"]]
+
+[[package]]
+name = "green-screen/smarttable"
+version = "0.1.2"
+dependencies = []
+
+[[package]]
+name = "green-screen/tramservice"
+version = "3.0.0"
+dependencies = [["Log", "green-screen/logger@0.2.0"], ["SecureClasses", "green-screen/secureclasses@2.3.0"], ["SmartTable", "green-screen/smarttable@0.1.2"]]

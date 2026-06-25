@@ -1,7 +1,15 @@
 [package]
-name = "cagur/TramService"
-version = "0.1.0"
+name = "green-screen/tramservice"
+version = "3.0.0"
 registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
+description = "A single point source signalling object"
+
+exclude = ["**"]
+include = ["src", "src/**", "wally.toml", "wally.lock", "default.project.json", "LICENSE", "README.md"]
 
 [dependencies]
+
+SmartTable = "green-screen/smarttable@0.1.2"
+SecureClasses = "green-screen/secureclasses@2.3.0"
+Log = "green-screen/logger@0.2.0"

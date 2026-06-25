@@ -1,0 +1,9 @@
+[package]
+name = "green-screen/smarttable"
+version = "0.1.2"
+registry = "https://github.com/UpliftGames/wally-index"
+realm = "shared"
+description = "A table library that implements basic table structures"
+include = ["src"]
+
+[dependencies]

@@ -1,0 +1,11 @@
+[package]
+name = "green-screen/easytype"
+description = "Custom type-checker for custom objects and classes"
+version = "2.0.7"
+license = "MIT"
+realm = "shared"
+registry = "https://github.com/Green-Screen/wally-index"
+repository = "https://github.com/Green-Screen/EasyType"
+
+
+[dependencies]

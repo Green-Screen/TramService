@@ -1,0 +1,27 @@
+{
+  "name": "SmartTable",
+  "emitLegacyScripts": false,
+  
+  
+  "tree": {
+    "$ignoreUnknownInstances": true,
+    "$className": "DataModel",
+
+    "Workspace": {
+      "SmartTable": {
+        "$className": "Folder",
+        
+          "SmartTable": {
+          "$path": "src",
+
+          "tests": {
+            "$path": "tests"
+          },
+          "Dependencies": {
+            "$path": "Packages"
+          }
+        }
+      }
+    }
+  }
+}

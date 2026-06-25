@@ -1,0 +1,41 @@
+# SecureClasses
+
+| Current Version | Released Version |
+| :---: | :---: |
+| The most recent version on the `Main` branch | The most up-to-date `downloadable` version published |
+| **2.2.2** | **2.2.1** |
+
+## [**Documentation**](https://green-screen.github.io/SecureClasses/)
+
+## What is Secure Classes?
+Secure Classes is a metatable wrapper ment to wrap all objects and properly protect. While maintaining a clean and concise structure that is up to modern standards.
+
+## Warnings
+### **Make sure you set UseNewLuauTypeSolver to enabled in workspace properties to get proper intellisense**
+
+**Due to the experimental status of the type solver sometimes intellisense will not be available due to the complex tupe casting and packing enviorment**
+
+
+
+### **Features:**
+
+-   Minimal headroom and allows full control of metatables when wrapped
+-   Statically typed
+-   Type solver support
+-   Built in destroy function and options to assign custom ones
+-   new metamethods __destroy & __typeKey
+-   Built in support for `private`, `protected`, `default` and `unprotected` table properties
+-   Secure objects and classes that are still easy to interact with
+
+### **[Changelog:](https://github.com/Green-Screen/SecureClasses/blob/main/changelog.md)**
+
+-   Support for userdatas removed
+-   Refactored package logic
+-   Better tutorial documentation
+-   Support for better type inferencing (waiting for better type functions)
+-   Added to [wally](https://wally.run/package/green-screen/secureclasses)
+
+### **Projects In Use:**
+-   [Ecosystem](https://github.com/Green-Screen/Ecosystem)
+
+**_This module is still in testing and is not yet ready for production usage_**

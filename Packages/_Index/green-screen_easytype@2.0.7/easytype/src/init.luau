@@ -1,5 +1,6 @@
--- EasyType V2
--- Written for performance
+-- EasyType V 2.0.2
+-- @Patriots8800
+
 --!strict
 
 -- A custom type checker made for type-checking custom objects and classes

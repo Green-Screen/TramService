@@ -1,5 +1,5 @@
 {
-  "name": "TramService",
+  "name": "TramService: Prod",
   "emitLegacyScripts": false,
   
   
@@ -8,11 +8,16 @@
     "$className": "DataModel",
 
     "ReplicatedStorage": {
-      "TramServiceV2": {
+      "TramService": {
         "$className": "Folder",
+        "$path": "Packages",
         
-          "TramService": {
-          "$path": "src"
+        "TramService": {
+          "$path": "src",
+          
+          "Tests":{
+            "$path": "tests"
+          }
         }
       }
     }

@@ -1,10 +1,23 @@
 # Tram Service
 
-## Current Version: V 2.2
-Added type safety for luau type solver
+| Current Version | Released Version |
+| :---: | :---: |
+| The most recent version on the `Main` branch | The most up-to-date `downloadable` version published |
+| **3.0.0** | **3.0.0** |
 
-Tram Service is a replacement to Bindable events
-Tram Service offers many performance improvments and features such as:
+## [**Documentation [Not implemented yet]**]()
+
+## What is Tram Service?
+Tram service is a **All In One** signaling class. **_Whats special?_** Tram Service is able to support the same functionality created from bindable events/functions **All inside 1 object**. While maintaining a **type safe** approach to all functions and events. It is **securely wrapped** in a protected metatable that strictly prevents modifacations and easy destruction of events when called. 
+
+## Warnings
+### **Make sure you set UseNewLuauTypeSolver to enabled in workspace properties to get proper intellisense**
+
+**Due to the experimental status of the type solver sometimes intellisense will not be available due to the complex tupe casting and packing enviorment**
+
+### **Projects In Use:**
+-   [TerminalService [In Dev]]()
+-   [TramService](https://github.com/Green-Screen/TramService)
 
 ### **Features:**
 

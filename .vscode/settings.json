@@ -1,6 +1,9 @@
 {
-   "luau-lsp.plugin.enabled": true,
-  "luau-lsp.sourcemap.rojoProjectFile": "TramService.project.json",
+  "luau-lsp.studioPlugin.enabled": true,
+  "luau-lsp.sourcemap.rojoProjectFile": "Dev.project.json",
+  "luau-lsp.fflags.enableNewSolver": true,
+  "luau-lsp.completion.imports.stringRequires.enabled": true,
+  "luau-lsp.completion.imports.requireStyle": "alwaysRelative",
     
   "editor.defaultFormatter": "JohnnyMorganz.stylua",
   
